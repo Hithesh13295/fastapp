@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fastapp
+  template:
+    metadata:
+      labels:
+        app: fastapp
+    spec:
+      containers:
+      - name: fastapp
+        image: 947754984980.dkr.ecr.eu-north-1.amazonaws.com/myapp:latest
+        ports:
+        - containerPort: 3000

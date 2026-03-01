@@ -1,0 +1,46 @@
+replicaCount: 2
+
+image:
+  repository: 947754984980.dkr.ecr.eu-north-1.amazonaws.com/fastapp
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: fastapp.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+env:
+  - name: ENVIRONMENT
+    value: production
+  - name: APP_NAME
+    value: fastapp
+
+config:
+  APP_MESSAGE: "FastApp Helm Deployment Success"
+
+livenessProbe:
+  path: /
+  initialDelaySeconds: 10
+
+readinessProbe:
+  path: /
+  initialDelaySeconds: 5
+
+volume:
+  name: fastapp-storage
+  emptyDir: {}
+
+volumeMount:
+  mountPath: /data
+
+resources: {}
