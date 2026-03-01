@@ -10,14 +10,7 @@ pipeline {
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Terraform Apply') {
+        stage('Terraform Init & Apply') {
             steps {
                 dir('terraform') {
                     sh 'terraform init'
@@ -66,11 +59,9 @@ pipeline {
 
         stage('Helm Deploy') {
             steps {
-                sh '''
-                helm upgrade --install fastapp helm/fastapp \
-                --set image.repository=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO \
-                --set image.tag=${IMAGE_TAG}
-                '''
+                helm upgrade --install fastapp ./helm/fastapp \
+                --set image.repository=$ECR_REPO \
+                --set image.tag=$IMAGE_TAG
             }
         }
     }
