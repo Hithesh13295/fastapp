@@ -3,20 +3,21 @@ pipeline {
 
     environment {
         AWS_REGION = "eu-north-1"
-        ECR_REPO = "947754984980.dkr.ecr.eu-north-1.amazonaws.com/fastapp"
-        IMAGE_TAG = "latest"
-        CLUSTER_NAME = "fastapp-eks-cluster"
+        ECR_REPO = "fastapp"
+        ACCOUNT_ID = "947754984980"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        CLUSTER_NAME = "fastapp-cluster"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/Hithesh13295/fastapp.git'
+                checkout scm
             }
         }
 
-        stage('Terraform Init & Apply') {
+        stage('Terraform Apply') {
             steps {
                 dir('terraform') {
                     sh 'terraform init'
@@ -27,24 +28,28 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t fastapp .'
+                sh 'docker build -t fastapp:${IMAGE_TAG} .'
             }
         }
 
-        stage('ECR Login') {
+        stage('Login to ECR') {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin 947754984980.dkr.ecr.$AWS_REGION.amazonaws.com
+                docker login --username AWS \
+                --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
                 '''
             }
         }
 
-        stage('Push to ECR') {
+        stage('Tag & Push') {
             steps {
                 sh '''
-                docker tag fastapp:latest $ECR_REPO:$IMAGE_TAG
-                docker push $ECR_REPO:$IMAGE_TAG
+                docker tag fastapp:${IMAGE_TAG} \
+                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${IMAGE_TAG}
+
+                docker push \
+                $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:${IMAGE_TAG}
                 '''
             }
         }
@@ -52,7 +57,9 @@ pipeline {
         stage('Update Kubeconfig') {
             steps {
                 sh '''
-                aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
+                aws eks update-kubeconfig \
+                --region $AWS_REGION \
+                --name $CLUSTER_NAME
                 '''
             }
         }
@@ -60,9 +67,9 @@ pipeline {
         stage('Helm Deploy') {
             steps {
                 sh '''
-                helm upgrade --install fastapp ./fastapp \
-                --set image.repository=$ECR_REPO \
-                --set image.tag=$IMAGE_TAG
+                helm upgrade --install fastapp helm/fastapp \
+                --set image.repository=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO \
+                --set image.tag=${IMAGE_TAG}
                 '''
             }
         }
