@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "fastapp.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if and .Values.autoscaling .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
