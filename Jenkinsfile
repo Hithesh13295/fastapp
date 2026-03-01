@@ -54,7 +54,7 @@ pipeline {
         stage('Helm Deploy') {
             steps {
                 sh '''
-                helm upgrade --install fastapp ./fastapp \
+                helm upgrade --install fastapp ./helm/fastapp \
                 --set image.repository=$ECR_REPO \
                 --set image.tag=$IMAGE_TAG
                 '''
