@@ -10,12 +10,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/Hithesh13295/fastapp.git'
-            }
-        }
-
         stage('Terraform Init & Apply') {
             steps {
                 dir('terraform') {
