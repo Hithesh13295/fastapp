@@ -6,7 +6,7 @@ pipeline {
         ECR_REPO = "fastapp"
         ACCOUNT_ID = "947754984980"
         IMAGE_TAG = "${BUILD_NUMBER}"
-        CLUSTER_NAME = "fastapp-cluster"
+        CLUSTER_NAME = "fastapp-eks-cluster"
     }
 
     stages {
